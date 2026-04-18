@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomUUID } from "node:crypto";
 import path from "path";
 import { fileURLToPath } from "url";
 import { readStore, writeStore } from "./store.js";
@@ -82,7 +83,7 @@ app.post("/api/auth/register", async (req, res) => {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     name,
     email,
     passwordHash,
@@ -168,7 +169,7 @@ app.post("/api/activities", authRequired, async (req, res) => {
 
   const state = await readStore();
   const activity = {
-    id: crypto.randomUUID(),
+    id: randomUUID(),
     userId: req.user.sub,
     name,
     category,
@@ -185,8 +186,9 @@ app.post("/api/activities", authRequired, async (req, res) => {
 app.delete("/api/activities/:activityId", authRequired, async (req, res) => {
   const { activityId } = req.params;
   const state = await readStore();
+  const resolvedId = String(activityId);
   const activityIndex = state.activities.findIndex(
-    (activity) => activity.id === activityId && activity.userId === req.user.sub
+    (activity) => String(activity.id) === resolvedId && activity.userId === req.user.sub
   );
 
   if (activityIndex === -1) {

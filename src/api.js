@@ -4,10 +4,24 @@ const jsonHeaders = {
 
 async function request(path, options = {}) {
   const response = await fetch(path, options);
-  const payload = await response.json().catch(() => ({}));
+
+  const contentType = response.headers.get("content-type") || "";
+  const hasJson = contentType.includes("application/json");
+  const hasBody = response.status !== 204;
+
+  let payload = {};
+  if (hasBody) {
+    if (hasJson) {
+      payload = await response.json().catch(() => ({}));
+    } else {
+      const text = await response.text().catch(() => "");
+      payload = text ? { message: text } : {};
+    }
+  }
 
   if (!response.ok) {
-    throw new Error(payload.message || "Something went wrong.");
+    const message = payload?.message || `Request failed (${response.status}).`;
+    throw new Error(message);
   }
 
   return payload;
@@ -59,7 +73,16 @@ export function createActivity(token, formData) {
 }
 
 export function deleteActivity(token, activityId) {
-  return request(`/api/activities/${activityId}`, {
+  const resolvedId =
+    typeof activityId === "object" && activityId !== null
+      ? activityId.id || activityId._id
+      : activityId;
+
+  if (!resolvedId) {
+    throw new Error("Missing activity id for delete request.");
+  }
+
+  return request(`/api/activities/${encodeURIComponent(resolvedId)}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`
