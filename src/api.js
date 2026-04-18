@@ -2,6 +2,12 @@ const jsonHeaders = {
   "Content-Type": "application/json"
 };
 
+function authHeaders(token) {
+  return {
+    Authorization: `Bearer ${token}`
+  };
+}
+
 async function request(path, options = {}) {
   const response = await fetch(path, options);
 
@@ -45,9 +51,7 @@ export function loginUser(formData) {
 
 export function fetchCurrentUser(token) {
   return request("/api/me", {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: authHeaders(token)
   });
 }
 
@@ -55,9 +59,7 @@ export function fetchActivities(token, category) {
   const query = category && category !== "All" ? `?category=${encodeURIComponent(category)}` : "";
 
   return request(`/api/activities${query}`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: authHeaders(token)
   });
 }
 
@@ -66,7 +68,7 @@ export function createActivity(token, formData) {
     method: "POST",
     headers: {
       ...jsonHeaders,
-      Authorization: `Bearer ${token}`
+      ...authHeaders(token)
     },
     body: JSON.stringify(formData)
   });
@@ -84,8 +86,6 @@ export function deleteActivity(token, activityId) {
 
   return request(`/api/activities/${encodeURIComponent(resolvedId)}`, {
     method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
+    headers: authHeaders(token)
   });
 }
