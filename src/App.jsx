@@ -63,6 +63,20 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    if (!notice) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNotice("");
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [notice]);
+
+  useEffect(() => {
     if (!token) {
       setUser(null);
       setActivities([]);
