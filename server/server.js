@@ -182,6 +182,23 @@ app.post("/api/activities", authRequired, async (req, res) => {
   res.status(201).json({ activity });
 });
 
+app.delete("/api/activities/:activityId", authRequired, async (req, res) => {
+  const { activityId } = req.params;
+  const state = await readStore();
+  const activityIndex = state.activities.findIndex(
+    (activity) => activity.id === activityId && activity.userId === req.user.sub
+  );
+
+  if (activityIndex === -1) {
+    return res.status(404).json({ message: "Activity not found." });
+  }
+
+  state.activities.splice(activityIndex, 1);
+  await writeStore(state);
+
+  res.status(204).send();
+});
+
 app.get("/api/me", authRequired, async (req, res) => {
   const state = await readStore();
   const user = state.users.find((entry) => entry.id === req.user.sub);

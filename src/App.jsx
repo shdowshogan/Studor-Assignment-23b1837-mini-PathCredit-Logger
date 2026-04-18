@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createActivity,
+  deleteActivity,
   fetchActivities,
   fetchCurrentUser,
   loginUser,
@@ -26,6 +27,10 @@ const emptyAuthForm = {
   password: ""
 };
 const themeStorageKey = "studor_theme";
+const themeIcons = {
+  light: "☾",
+  dark: "☀"
+};
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("en-IN", {
@@ -50,6 +55,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [activityError, setActivityError] = useState("");
   const [notice, setNotice] = useState("");
+  const [deletingActivityId, setDeletingActivityId] = useState("");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -197,6 +203,22 @@ export default function App() {
     }
   }
 
+  async function handleDeleteActivity(activityId) {
+    setActivityError("");
+    setNotice("");
+    setDeletingActivityId(activityId);
+
+    try {
+      await deleteActivity(token, activityId);
+      setActivities((current) => current.filter((activity) => activity.id !== activityId));
+      setNotice("Activity deleted.");
+    } catch (error) {
+      setActivityError(error.message);
+    } finally {
+      setDeletingActivityId("");
+    }
+  }
+
   if (!token || !user) {
     return (
       <main className="page-shell">
@@ -211,7 +233,10 @@ export default function App() {
             </div>
 
             <button className="secondary-button" onClick={toggleTheme} type="button">
-              {theme === "light" ? "Dark mode" : "Light mode"}
+              <span aria-hidden="true">{themeIcons[theme]}</span>
+              <span className="sr-only">
+                {theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+              </span>
             </button>
           </div>
 
@@ -273,7 +298,7 @@ export default function App() {
             {authError ? <p className="message error">{authError}</p> : null}
             {notice ? <p className="message success">{notice}</p> : null}
 
-            <button className="primary-button" disabled={authLoading} type="submit">
+            <button className="primary-button" disabled={authLoading} type="submit" style={{ marginTop: "12px" }}>
               {authLoading ? "Please wait..." : authMode === authModes.login ? "Login" : "Create account"}
             </button>
           </form>
@@ -294,7 +319,10 @@ export default function App() {
 
           <div className="action-row">
             <button className="secondary-button" onClick={toggleTheme} type="button">
-              {theme === "light" ? "Dark mode" : "Light mode"}
+              <span aria-hidden="true">{themeIcons[theme]}</span>
+              <span className="sr-only">
+                {theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+              </span>
             </button>
             <button className="secondary-button" onClick={clearSession} type="button">
               Logout
@@ -365,6 +393,8 @@ export default function App() {
             </div>
 
             <div className="feed-list">
+              {activityError ? <p className="message error">{activityError}</p> : null}
+              {notice ? <p className="message success">{notice}</p> : null}
               {feedLoading ? <p className="muted">Loading activities...</p> : null}
 
               {!feedLoading && activities.length === 0 ? (
@@ -385,7 +415,17 @@ export default function App() {
                       <h3>{activity.name}</h3>
                       <p className="muted">{formatDate(activity.date)}</p>
                     </div>
-                    <span className="pill">{activity.category}</span>
+                    <div className="activity-actions">
+                      <span className="pill">{activity.category}</span>
+                      <button
+                        className="danger-button"
+                        disabled={deletingActivityId === activity.id}
+                        onClick={() => handleDeleteActivity(activity.id)}
+                        type="button"
+                      >
+                        {deletingActivityId === activity.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
                   </article>
                 ))}
             </div>

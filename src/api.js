@@ -57,3 +57,12 @@ export function createActivity(token, formData) {
     body: JSON.stringify(formData)
   });
 }
+
+export function deleteActivity(token, activityId) {
+  return request(`/api/activities/${activityId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+}
