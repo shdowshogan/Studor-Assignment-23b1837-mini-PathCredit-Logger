@@ -3,6 +3,7 @@
 A small full-stack PathCredit Logger built with React and Express. Students can create an account, sign in, log activities, and filter their own activity feed by category without a page reload.
 
 ## How to run locally
+- Clone the repository by running: git clone "https://github.com/shdowshogan/Studor-Assignment-23b1837-mini-PathCredit-Logger.git"
 
 ```bash
 npm install
